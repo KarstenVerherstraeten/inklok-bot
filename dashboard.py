@@ -59,13 +59,20 @@ def index():
         return f"Database Error: {e}", 500
 
 if __name__ == '__main__':
-    # STAP 1: Start de Discord Bot op de achtergrond
-    print("🤖 Bot opstarten op de achtergrond...")
-    bot_thread = threading.Thread(target=lambda: bot.run(TOKEN), daemon=True)
-    bot_thread.start()
-    
-    # STAP 2: Start de Flask Webserver
-    # Render geeft ons een poort via de PORT variabele
+    # Haal de poort op die Render ons toewijst
     port = int(os.environ.get("PORT", 5000))
+    
+    # We definiëren een functie om de bot te starten
+    def run_bot():
+        try:
+            bot.run(TOKEN)
+        except Exception as e:
+            print(f"❌ Bot Error: {e}")
+
+    # Start de bot in een achtergrond-thread
+    print("🤖 Bot thread wordt voorbereid...")
+    threading.Thread(target=run_bot, daemon=True).start()
+    
+    # Start Flask DIRECT (Render ziet dan meteen de poort)
     print(f"🌐 Dashboard opstarten op poort {port}...")
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
