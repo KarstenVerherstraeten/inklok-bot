@@ -1,10 +1,13 @@
 import os
-import time
 import threading
+import time
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from flask import Flask, render_template
-from bot import bot, TOKEN  # We importeren de bot en token uit je bot.py
+
+# Importeer de bot en token uit je bot.py
+# Zorg dat bot.py in dezelfde map staat
+from bot import bot, TOKEN 
 
 app = Flask(__name__)
 
@@ -12,6 +15,7 @@ app = Flask(__name__)
 DB_URI = os.getenv("DATABASE_URL")
 
 def get_db_dashboard():
+    # Connectie met Supabase (PostgreSQL)
     return psycopg2.connect(DB_URI, cursor_factory=RealDictCursor)
 
 @app.route('/')
@@ -20,7 +24,7 @@ def index():
         conn = get_db_dashboard()
         cur = conn.cursor()
         
-        # 1. LOGBOEK
+        # 1. LOGBOEK: Laatste 50 sessies
         cur.execute('''
             SELECT user_id, user_name, start_time, end_time, duration 
             FROM dienst 
@@ -30,7 +34,7 @@ def index():
         ''')
         diensten = cur.fetchall()
         
-        # 2. TOP LIJST (Bonus)
+        # 2. TOP LIJST: Totaal uren per persoon
         cur.execute('''
             SELECT user_name, COALESCE(SUM(duration)/60, 0) as totaal_uren, COUNT(*) as sessies 
             FROM dienst 
@@ -40,7 +44,7 @@ def index():
         ''')
         stats = cur.fetchall()
         
-        # 3. ACTIEVE KRACHTEN
+        # 3. ACTIEVE KRACHTEN: Wie is er nu ingeklokt?
         cur.execute('''
             SELECT user_name, start_time 
             FROM dienst 
@@ -57,28 +61,29 @@ def index():
                                actieve_count=len(actieve_leden), 
                                actieve_leden=actieve_leden)
     except Exception as e:
-        return f"Database Error: {e}", 500
+        print(f"❌ Database Error: {e}")
+        return f"Database Error. Check logs.", 500
+
+# Functie om de bot te starten met een kleine vertraging
+def start_discord_bot():
+    # We wachten 10 seconden zodat Flask alle tijd heeft om de poort te claimen
+    time.sleep(10)
+    print("🤖 Discord bot thread: Poging tot inloggen...")
+    try:
+        bot.run(TOKEN)
+    except Exception as e:
+        print(f"❌ Bot Error: {e}")
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    
-    # De bot-functie
-    def run_bot():
-        # Een extra korte slaapstand om Flask echt de tijd te geven
-        time.sleep(10)
-        try:
-            print("🤖 Bot start nu op de achtergrond...")
-            bot.run(TOKEN)
-        except Exception as e:
-            print(f"❌ Bot Error: {e}")
-
-    # Start de bot in een aparte thread
-    # We gebruiken een daemon thread zodat hij stopt als de app stopt
-    t = threading.Thread(target=run_bot)
-    t.daemon = True
+    # 1. Start de bot thread (daemon=True zorgt dat hij stopt als de app stopt)
+    print("🧵 Bot thread voorbereiden...")
+    t = threading.Thread(target=start_discord_bot, daemon=True)
     t.start()
     
-    # START FLASK ALS ALLEREERSTE
+    # 2. Bepaal de poort (Render gebruikt standaard 10000 of de PORT env)
+    port = int(os.environ.get("PORT", 10000))
+    
+    # 3. START FLASK
+    # use_reloader=False is cruciaal om te voorkomen dat de bot twee keer start!
     print(f"🌐 Dashboard start op poort {port}...")
-    # debug=False en use_reloader=False zijn VERPLICHT voor deze setup
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
