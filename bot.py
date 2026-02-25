@@ -1,3 +1,5 @@
+import os
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -8,8 +10,8 @@ import certifi
 
 # --- CONFIGURATIE ---
 # BELANGRIJK: Vervang 'xxxx' door jouw unieke Supabase ID
-DB_URI = "postgresql://postgres:UGLhFvr04hluHH5H@db.qujvvlpguvmuypsplmmd.supabase.co:5432/postgres"
-TOKEN = 'MTQ3NjIyODcyMTQxMjE0NTI4Nw.Gl_7to.UOg7o15loxjz6_lVlcm2tUw4E_1PS6ftjMwBh8'
+DB_URI = os.getenv("DATABASE_URL")
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 # --- DATABASE SETUP ---
 def get_db_connection():

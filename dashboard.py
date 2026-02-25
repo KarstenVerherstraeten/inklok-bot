@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, render_template
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -5,7 +7,7 @@ from psycopg2.extras import RealDictCursor
 app = Flask(__name__)
 
 # Jouw Supabase URI
-DB_URI = "postgresql://postgres:UGLhFvr04hluHH5H@db.qujvvlpguvmuypsplmmd.supabase.co:5432/postgres"
+DB_URI = os.getenv("DATABASE_URL")
 
 def get_db_dashboard():
     # RealDictCursor zorgt ervoor dat we row['kolomnaam'] kunnen gebruiken in de HTML
