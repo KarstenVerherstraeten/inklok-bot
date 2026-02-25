@@ -1,4 +1,5 @@
 import os
+import time
 import threading
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -59,20 +60,25 @@ def index():
         return f"Database Error: {e}", 500
 
 if __name__ == '__main__':
-    # Haal de poort op die Render ons toewijst
     port = int(os.environ.get("PORT", 5000))
     
-    # We definiëren een functie om de bot te starten
+    # De bot-functie
     def run_bot():
+        # Een extra korte slaapstand om Flask echt de tijd te geven
+        time.sleep(10)
         try:
+            print("🤖 Bot start nu op de achtergrond...")
             bot.run(TOKEN)
         except Exception as e:
             print(f"❌ Bot Error: {e}")
 
-    # Start de bot in een achtergrond-thread
-    print("🤖 Bot thread wordt voorbereid...")
-    threading.Thread(target=run_bot, daemon=True).start()
+    # Start de bot in een aparte thread
+    # We gebruiken een daemon thread zodat hij stopt als de app stopt
+    t = threading.Thread(target=run_bot)
+    t.daemon = True
+    t.start()
     
-    # Start Flask DIRECT (Render ziet dan meteen de poort)
-    print(f"🌐 Dashboard opstarten op poort {port}...")
+    # START FLASK ALS ALLEREERSTE
+    print(f"🌐 Dashboard start op poort {port}...")
+    # debug=False en use_reloader=False zijn VERPLICHT voor deze setup
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
