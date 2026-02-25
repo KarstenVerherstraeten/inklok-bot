@@ -112,6 +112,3 @@ async def uitdienst(interaction: discord.Interaction):
     embed.add_field(name="Totaal 30 dagen:", value=f"{maand_uren} uur", inline=False)
     
     await interaction.response.send_message(embed=embed, ephemeral=True)
-
-# --- RUN BOT ---
-bot.run(TOKEN)
