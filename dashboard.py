@@ -26,12 +26,12 @@ def index():
         
         # 1. LOGBOEK: Laatste 50 sessies
         cur.execute('''
-            SELECT user_id, user_name, start_time, end_time, duration 
-            FROM dienst 
-            WHERE end_time IS NOT NULL 
-            ORDER BY start_time DESC 
-            LIMIT 50
-        ''')
+    SELECT user_id, user_name, start_time::text, end_time::text, duration 
+    FROM dienst 
+    WHERE end_time IS NOT NULL 
+    ORDER BY start_time DESC 
+    LIMIT 50
+''')
         diensten = cur.fetchall()
         
         # 2. TOP LIJST: Totaal uren per persoon
@@ -46,10 +46,10 @@ def index():
         
         # 3. ACTIEVE KRACHTEN: Wie is er nu ingeklokt?
         cur.execute('''
-            SELECT user_name, start_time 
-            FROM dienst 
-            WHERE end_time IS NULL
-        ''')
+    SELECT user_name, start_time::text 
+    FROM dienst 
+    WHERE end_time IS NULL
+''')
         actieve_leden = cur.fetchall()
         
         cur.close()
