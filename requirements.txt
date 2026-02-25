@@ -1,0 +1,4 @@
+flask
+psycopg2-binary
+discord.py
+certifi
